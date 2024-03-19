@@ -1,5 +1,4 @@
 import com.fazecast.jSerialComm.SerialPort;
-
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -37,28 +36,46 @@ public class SerialConnection {
     }
 }
 
-
 class ServoControlApp extends JFrame {
-    private static final String SERIAL_PORT = "COM3"; // Установите правильный COM-порт для вашей Arduino
-
     private final JSlider[] sliders;
     private final JLabel[] labels;
-    private final SerialConnection serialConnection;
+    private SerialConnection serialConnection;
+    private final JComboBox<String> portComboBox; // Добавляем JComboBox для выбора COM-порта
 
     public ServoControlApp() {
         super("Управление сервоприводами");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
+        JPanel panel = new JPanel(new GridLayout(5, 2, 10, 10)); // Увеличиваем количество строк для добавления JComboBox
+
+        // Добавляем метку для COM-порта
+        JLabel portLabel = new JLabel("COM-порт:");
+        panel.add(portLabel);
+
+        // Создаем JComboBox для выбора COM-порта
+        portComboBox = new JComboBox<>();
+        SerialPort[] ports = SerialPort.getCommPorts();
+        for (SerialPort port : ports) {
+            portComboBox.addItem(port.getSystemPortName());
+        }
+        panel.add(portComboBox);
+
         sliders = new JSlider[4];
         labels = new JLabel[4];
-        serialConnection = new SerialConnection(SERIAL_PORT);
 
-        setupUI();
+        // Используем выбранный COM-порт из JComboBox
+        serialConnection = new SerialConnection((String) portComboBox.getSelectedItem());
+
+        setupUI(panel); // Передаем панель в метод setupUI
+
+        // Добавляем слушатель изменений для JComboBox
+        portComboBox.addActionListener(e -> {
+            serialConnection.close(); // Закрываем текущее соединение
+            serialConnection = new SerialConnection((String) portComboBox.getSelectedItem()); // Создаем новое соединение с выбранным портом
+        });
     }
 
-    private void setupUI() {
-        JPanel panel = new JPanel(new GridLayout(4, 2, 10, 10));
-
+    private void setupUI(JPanel panel) { // Добавляем параметр panel
         for (int i = 0; i < 4; i++) {
             labels[i] = new JLabel("Серво " + (i + 1));
             panel.add(labels[i]);
