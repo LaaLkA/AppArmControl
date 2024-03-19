@@ -1,5 +1,3 @@
-package org.example;
-
 import com.fazecast.jSerialComm.SerialPort;
 
 import javax.swing.*;
